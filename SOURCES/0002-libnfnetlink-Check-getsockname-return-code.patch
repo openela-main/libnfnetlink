@@ -1,0 +1,40 @@
+From cebc5fb8352a25acd973dddfc18c48ca2858ac77 Mon Sep 17 00:00:00 2001
+From: Phil Sutter <phil@nwl.cc>
+Date: Fri, 25 Mar 2022 18:33:55 +0100
+Subject: [PATCH] libnfnetlink: Check getsockname() return code
+
+The function may return -1 (and set errno). Assume it will leave
+addr_len value unchanged, so checking is necessary to not hide the
+error.
+
+Fixes: 4248314d40187 ("nfnl: fix compilation warning with gcc-4.7")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+(cherry picked from commit 3cffa84fa74f40c57e9ef39ea5747d792d697367)
+---
+ src/libnfnetlink.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/src/libnfnetlink.c b/src/libnfnetlink.c
+index 4b2bcd015b0a6..14a311f2c448b 100644
+--- a/src/libnfnetlink.c
++++ b/src/libnfnetlink.c
+@@ -188,7 +188,8 @@ struct nfnl_handle *nfnl_open(void)
+ 	nfnlh->peer.nl_family = AF_NETLINK;
+ 
+ 	addr_len = sizeof(nfnlh->local);
+-	getsockname(nfnlh->fd, (struct sockaddr *)&nfnlh->local, &addr_len);
++	if (getsockname(nfnlh->fd, (struct sockaddr *)&nfnlh->local, &addr_len))
++		goto err_close;
+ 	if (addr_len != sizeof(nfnlh->local)) {
+ 		errno = EINVAL;
+ 		goto err_close;
+@@ -209,7 +210,8 @@ struct nfnl_handle *nfnl_open(void)
+ 
+ 	/* use getsockname to get the netlink pid that the kernel assigned us */
+ 	addr_len = sizeof(nfnlh->local);
+-	getsockname(nfnlh->fd, (struct sockaddr *)&nfnlh->local, &addr_len);
++	if (getsockname(nfnlh->fd, (struct sockaddr *)&nfnlh->local, &addr_len))
++		goto err_close;
+ 	if (addr_len != sizeof(nfnlh->local)) {
+ 		errno = EINVAL;
+ 		goto err_close;

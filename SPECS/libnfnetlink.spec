@@ -1,6 +1,6 @@
 Name:           libnfnetlink
 Version:        1.0.1
-Release:        21%{?dist}
+Release:        23%{?dist}
 Summary:        Netfilter netlink userspace library
 License:        GPLv2+
 URL:            http://netfilter.org
@@ -8,6 +8,9 @@ Source0:        http://netfilter.org/projects/libnfnetlink/files/%{name}-%{versi
 BuildRequires:	kernel-headers
 BuildRequires:  automake autoconf libtool pkgconfig
 BuildRequires: make
+
+Patch1:         0001-include-Silence-gcc-warning-in-linux_list.h.patch
+Patch2:         0002-libnfnetlink-Check-getsockname-return-code.patch
 
 %description
 libnfnetlink is a userspace library that provides some low-level
@@ -27,7 +30,7 @@ subsystem specific libraries such as libnfnetlink_conntrack, libnfnetlink_log
 and libnfnetlink_queue.
 
 %prep
-%setup -q
+%autosetup -p1
 
 %build
 %configure --disable-static
@@ -54,6 +57,13 @@ find $RPM_BUILD_ROOT -type f -name "*.la" -exec rm -f {} ';'
 %{_includedir}/libnfnetlink/*.h
 
 %changelog
+* Fri Nov 22 2024 Phil Sutter <psutter@redhat.com> - 1.0.1-23
+- Bump release for CI
+
+* Wed May 08 2024 Phil Sutter <psutter@redhat.com> - 1.0.1-22
+- libnfnetlink: Check getsockname() return code
+- include: Silence gcc warning in linux_list.h
+
 * Mon Aug 09 2021 Mohan Boddu <mboddu@redhat.com> - 1.0.1-21
 - Rebuilt for IMA sigs, glibc 2.34, aarch64 flags
   Related: rhbz#1991688
